@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+    <com.ys.nearbypaint.presentation.view.view.PaintView
+            android:id="@+id/paint_view"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_constraintBottom_toTopOf="@id/paint_scrollview"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toTopOf="parent"/>
+
+    <HorizontalScrollView
+            android:id="@+id/paint_scrollview"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/paint_scrollview_height"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/paint_view">
+
+        <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:orientation="horizontal"
+                android:layout_gravity="center_vertical"
+                android:padding="@dimen/paint_scrollview_padding">
+
+            <ImageView
+                    android:id="@+id/clear_button"
+                    android:layout_width="@dimen/paint_scrollview_image_size"
+                    android:layout_height="@dimen/paint_scrollview_image_size"
+                    android:src="@mipmap/baseline_clear_black_48"
+                    android:contentDescription="@string/clear"/>
+
+            <ImageView
+                    android:id="@+id/save_button"
+                    android:layout_width="@dimen/paint_scrollview_image_size"
+                    android:layout_height="@dimen/paint_scrollview_image_size"
+                    android:src="@mipmap/baseline_save_black_48"
+                    android:layout_marginLeft="@dimen/paint_scrollview_item_margin"
+                    android:contentDescription="@string/save"/>
+
+        </LinearLayout>
+
+    </HorizontalScrollView>
+
+</android.support.constraint.ConstraintLayout>

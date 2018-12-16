@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">Nearby Paint</string>
+
+    <string name="message_capture_success">successful in capture!</string>
+    <string name="message_capture_failed">failed to capture</string>
+
+    <!-- content description -->
+    <string name="clear">clear</string>
+    <string name="save">save</string>
+    <string name="change_color">change color</string>
+</resources>
