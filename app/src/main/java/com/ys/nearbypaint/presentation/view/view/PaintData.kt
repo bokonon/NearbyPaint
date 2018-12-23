@@ -4,7 +4,7 @@ import android.graphics.PointF
 import android.os.Parcel
 import android.os.Parcelable
 import com.google.gson.annotations.SerializedName
-import java.util.ArrayList
+import java.util.*
 
 /**
  * PaintData Dto.
@@ -12,25 +12,30 @@ import java.util.ArrayList
 class PaintData : Parcelable {
 
     @SerializedName("canvasWidth")
-    var canvasWidth: Int = 0
+    val canvasWidth: Int
 
     @SerializedName("canvasHeight")
-    var canvasHeight: Int = 0
+    val canvasHeight: Int
 
     @SerializedName("points")
-    lateinit var points: List<PointF>
+    var points: List<PointF> = ArrayList()
 
     @SerializedName("eraserFlg")
-    var eraserFlg = 0
+    val eraserFlg: Int
 
-    constructor() {
+    @SerializedName("thickness")
+    val thickness: Int
 
-    }
+    @SerializedName("color")
+    val color: Int
 
-    constructor(width: Int, height: Int, points: List<PointF>) {
+    constructor(width: Int, height: Int, points: List<PointF>, thickness: Int, color: Int) {
         this.canvasWidth = width
         this.canvasHeight = height
         this.points = points
+        this.eraserFlg = 0
+        this.thickness = thickness
+        this.color = color
     }
 
     constructor(eraser: Int) {
@@ -38,6 +43,8 @@ class PaintData : Parcelable {
         this.canvasHeight = 0
         this.points = ArrayList()
         this.eraserFlg = eraser
+        this.thickness = 0
+        this.color = 0
     }
 
     override fun describeContents(): Int {
@@ -52,6 +59,8 @@ class PaintData : Parcelable {
         }
 
         eraserFlg = `in`.readInt()
+        thickness = `in`.readInt()
+        color = `in`.readInt()
     }
 
     override fun writeToParcel(out: Parcel, flags: Int) {
@@ -59,6 +68,8 @@ class PaintData : Parcelable {
         out.writeInt(canvasHeight)
         out.writeList(points)
         out.writeInt(eraserFlg)
+        out.writeInt(thickness)
+        out.writeInt(color)
     }
 
     companion object {

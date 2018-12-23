@@ -90,8 +90,8 @@ class NearbyUseCase(fragmentActivity: FragmentActivity, listener: NearbySubscrib
             })
             .build()
 
-        NearbyPaintLog.d(TAG, "message.namespace() : $message.namespace")
-        NearbyPaintLog.d(TAG, "message.content() : $message.content")
+        NearbyPaintLog.d(TAG, "message.namespace : $message.namespace")
+        NearbyPaintLog.d(TAG, "message.content : $message.content")
 
         Nearby.Messages.publish(googleApiClient, message, options)
             .setResultCallback {

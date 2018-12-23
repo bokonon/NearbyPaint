@@ -2,6 +2,7 @@
 <android.support.constraint.ConstraintLayout
         xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
@@ -14,7 +15,7 @@
             app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintTop_toTopOf="parent"/>
 
-    <HorizontalScrollView
+    <com.ys.nearbypaint.presentation.view.view.ListenableHorizontalScrollView
             android:id="@+id/paint_scrollview"
             android:layout_width="match_parent"
             android:layout_height="@dimen/paint_scrollview_height"
@@ -30,23 +31,84 @@
                 android:layout_gravity="center_vertical"
                 android:padding="@dimen/paint_scrollview_padding">
 
+            <!-- clear -->
             <ImageView
                     android:id="@+id/clear_button"
                     android:layout_width="@dimen/paint_scrollview_image_size"
                     android:layout_height="@dimen/paint_scrollview_image_size"
                     android:src="@mipmap/baseline_clear_black_48"
-                    android:contentDescription="@string/clear"/>
+                    android:contentDescription="@string/clear_all"/>
 
+            <!-- brash -->
+            <com.ys.nearbypaint.presentation.view.view.KeepPressingImageView
+                    android:id="@+id/increase_thickness_button"
+                    android:layout_width="@dimen/paint_scrollview_image_size"
+                    android:layout_height="@dimen/paint_scrollview_image_size"
+                    android:src="@mipmap/baseline_brush_black_48"
+                    android:contentDescription="@string/increase_thickness"/>
+
+            <!-- thick -->
+            <com.ys.nearbypaint.presentation.view.view.KeepPressingImageView
+                    android:id="@+id/reduce_thickness_button"
+                    android:layout_width="@dimen/paint_scrollview_image_size"
+                    android:layout_height="@dimen/paint_scrollview_image_size"
+                    android:src="@mipmap/baseline_brush_black_thin_48"
+                    android:contentDescription="@string/reduce_thickness"/>
+
+            <!-- square -->
+            <ImageView
+                    android:id="@+id/square_button"
+                    android:layout_width="@dimen/paint_scrollview_image_size"
+                    android:layout_height="@dimen/paint_scrollview_image_size"
+                    android:src="@mipmap/baseline_crop_din_black_square_48"
+                    android:layout_marginStart="@dimen/paint_scrollview_item_margin"
+                    android:contentDescription="@string/square"/>
+
+            <!-- rectangle -->
+            <ImageView
+                    android:id="@+id/rectangle_button"
+                    android:layout_width="@dimen/paint_scrollview_image_size"
+                    android:layout_height="@dimen/paint_scrollview_image_size"
+                    android:src="@mipmap/baseline_crop_din_black_rectangle_48"
+                    android:layout_marginStart="@dimen/paint_scrollview_item_margin"
+                    android:contentDescription="@string/rectangle"/>
+
+            <!-- eraser -->
+            <ImageView
+                    android:id="@+id/eraser_button"
+                    android:layout_width="@dimen/paint_scrollview_image_size"
+                    android:layout_height="@dimen/paint_scrollview_image_size"
+                    android:src="@mipmap/eraser_black_48"
+                    android:layout_marginStart="@dimen/paint_scrollview_item_margin"
+                    android:contentDescription="@string/eraser"/>
+
+            <!-- save -->
             <ImageView
                     android:id="@+id/save_button"
                     android:layout_width="@dimen/paint_scrollview_image_size"
                     android:layout_height="@dimen/paint_scrollview_image_size"
                     android:src="@mipmap/baseline_save_black_48"
-                    android:layout_marginLeft="@dimen/paint_scrollview_item_margin"
+                    android:layout_marginStart="@dimen/paint_scrollview_item_margin"
                     android:contentDescription="@string/save"/>
 
         </LinearLayout>
 
-    </HorizontalScrollView>
+    </com.ys.nearbypaint.presentation.view.view.ListenableHorizontalScrollView>
+
+    <com.ys.nearbypaint.presentation.view.view.DisappearTextView
+            android:id="@+id/thickness_number_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_constraintTop_toTopOf="@id/paint_view"
+            app:layout_constraintLeft_toLeftOf="@id/paint_view"
+            app:layout_constraintRight_toRightOf="@id/paint_view"
+            app:layout_constraintBottom_toBottomOf="@id/paint_view"
+            android:padding="12dp"
+            android:gravity="center"
+            android:background="@drawable/round_shape"
+            tools:text="10"
+            android:textSize="18sp"
+            android:textColor="@android:color/white"
+            android:textStyle="bold"/>
 
 </android.support.constraint.ConstraintLayout>

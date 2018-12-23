@@ -16,17 +16,15 @@ import com.ys.nearbypaint.R
 import com.ys.nearbypaint.domain.usecase.CaptureUseCase
 import com.ys.nearbypaint.domain.usecase.NearbyUseCase
 import com.ys.nearbypaint.presentation.view.activity.MainActivity
-import com.ys.nearbypaint.presentation.view.view.DrawElement
-import com.ys.nearbypaint.presentation.view.view.PaintData
-import com.ys.nearbypaint.presentation.view.view.PaintView
+import com.ys.nearbypaint.presentation.view.view.*
 import com.ys.nearbypaint.utiles.GsonUtil
 import com.ys.nearbypaint.utiles.NearbyPaintLog
+import com.ys.nearbypaint.utiles.SharedPreferencesManager
 
 class MainFragment : Fragment(), NearbyUseCase.NearbySubscribeListener, PaintView.OnDrawEnd {
 
-    @Suppress("JAVA_CLASS_ON_COMPANION")
+    private val TAG : String = if(javaClass.simpleName != null) javaClass.simpleName else "MainFragment"
     companion object {
-        private val TAG : String = if(javaClass.simpleName != null) javaClass.simpleName else "MainFragment"
         fun newInstance(): MainFragment {
             return MainFragment()
         }
@@ -42,6 +40,11 @@ class MainFragment : Fragment(), NearbyUseCase.NearbySubscribeListener, PaintVie
      */
     private lateinit var paintView: PaintView
 
+    private lateinit var thicknessNumberText: DisappearTextView
+
+    private lateinit var reduceThicknessButton: KeepPressingImageView
+    private lateinit var increaseThicknessButton: KeepPressingImageView
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         super.onCreateView(inflater, container, savedInstanceState)
         NearbyPaintLog.d(TAG, object : Any() {}.javaClass.enclosingMethod.name)
@@ -52,8 +55,54 @@ class MainFragment : Fragment(), NearbyUseCase.NearbySubscribeListener, PaintVie
         paintView = view.findViewById(R.id.paint_view) as PaintView
         paintView.setListener(this)
 
+        val scrollView = view.findViewById(R.id.paint_scrollview) as ListenableHorizontalScrollView
+        scrollView.setOnScrollChangeListener(object : ListenableHorizontalScrollView.OnScrollChangeListener{
+            override fun onScrollChange() {
+                NearbyPaintLog.d(TAG, "onScrollChange")
+                onScrollChanged()
+            }
+        })
+
         val clearButton =  view.findViewById(R.id.clear_button) as ImageView
         clearButton.setOnClickListener { clear() }
+
+        reduceThicknessButton =  view.findViewById(R.id.reduce_thickness_button) as KeepPressingImageView
+        reduceThicknessButton.setOnClickListener { paintView.setElementMode(ElementMode.MODE_LINE) }
+        reduceThicknessButton.setKeepPressingListener(KeepPressingImageView.DEFAULT_PERIOD, object :
+            KeepPressingImageView.OnKeepPressingListener{
+            override fun onKeepPressing() {
+                increaseThickness(-1)
+            }
+            override fun onKeepPressingEnd() {
+                commitThickness()
+            }
+        })
+        increaseThicknessButton =  view.findViewById(R.id.increase_thickness_button) as KeepPressingImageView
+        increaseThicknessButton.setOnClickListener { paintView.setElementMode(ElementMode.MODE_LINE) }
+        increaseThicknessButton.setKeepPressingListener(KeepPressingImageView.DEFAULT_PERIOD, object :
+            KeepPressingImageView.OnKeepPressingListener{
+            override fun onKeepPressing() {
+                increaseThickness(1)
+            }
+            override fun onKeepPressingEnd() {
+                commitThickness()
+            }
+        })
+
+        val thickness = SharedPreferencesManager().readThickness(activity as Context)
+        thicknessNumberText = view.findViewById(R.id.thickness_number_text)
+        paintView.setThickness(thickness)
+        thicknessNumberText.setDisappearText(thickness.toString())
+
+        val squareButton = view.findViewById<ImageView>(R.id.square_button)
+        squareButton.setOnClickListener{ paintView.setElementMode(ElementMode.MODE_STAMP_SQUARE) }
+
+        val rectangleButton = view.findViewById<ImageView>(R.id.rectangle_button)
+        rectangleButton.setOnClickListener{ paintView.setElementMode(ElementMode.MODE_STAMP_RECTANGLE) }
+
+        val eraserButton = view.findViewById<ImageView>(R.id.eraser_button)
+        eraserButton.setOnClickListener{ paintView.setElementMode(ElementMode.MODE_ERASER) }
+
         val saveButton =  view.findViewById(R.id.save_button) as ImageView
         saveButton.setOnClickListener { save() }
 
@@ -81,7 +130,7 @@ class MainFragment : Fragment(), NearbyUseCase.NearbySubscribeListener, PaintVie
      */
     override fun subscribe(message: Message) {
         activity?.runOnUiThread {
-            NearbyPaintLog.d(TAG, "message : " + message.toString())
+            NearbyPaintLog.d(TAG, "message : $message")
             val paintData = GsonUtil.fromMessage(message)
             // eraser
             if (paintData.eraserFlg == 1) {
@@ -114,6 +163,28 @@ class MainFragment : Fragment(), NearbyUseCase.NearbySubscribeListener, PaintVie
         nearbyUseCase.publish(GsonUtil.newMessage(paintData))
     }
 
+    private fun onScrollChanged() {
+//        NearbyPaintLog.d(TAG, "onScrollChanged")
+        reduceThicknessButton.forceStop()
+        increaseThicknessButton.forceStop()
+    }
+
+    private fun clear() {
+        paintView.clearList()
+        val message = GsonUtil.newMessage(PaintData(1))
+        nearbyUseCase.publish(message)
+    }
+
+    private fun increaseThickness(value: Int) {
+        val thickness = paintView.addThickness(value)
+        thicknessNumberText.setDisappearText(thickness.toString())
+    }
+
+    private fun commitThickness() {
+        val thickness = Integer.parseInt(thicknessNumberText.text.toString())
+        SharedPreferencesManager().putThickness(activity as Context, thickness)
+    }
+
     private fun save() {
         val bitmap = drawBitmap(paintView)
         val filePath = CaptureUseCase().captureCanvas(activity as Context, bitmap)
@@ -127,12 +198,6 @@ class MainFragment : Fragment(), NearbyUseCase.NearbySubscribeListener, PaintVie
             Toast.makeText(activity?.applicationContext, R.string.message_capture_failed, Toast.LENGTH_SHORT)
                 .show()
         }
-    }
-
-    private fun clear() {
-        paintView.clearList()
-        val message = GsonUtil.newMessage(PaintData(1))
-        nearbyUseCase.publish(message)
     }
 
     /**
