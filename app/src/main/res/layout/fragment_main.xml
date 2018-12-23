@@ -60,7 +60,7 @@
                     android:id="@+id/square_button"
                     android:layout_width="@dimen/paint_scrollview_image_size"
                     android:layout_height="@dimen/paint_scrollview_image_size"
-                    android:src="@mipmap/baseline_crop_din_black_square_48"
+                    android:src="@mipmap/baseline_crop_din_black_48"
                     android:layout_marginStart="@dimen/paint_scrollview_item_margin"
                     android:contentDescription="@string/square"/>
 
@@ -69,7 +69,7 @@
                     android:id="@+id/rectangle_button"
                     android:layout_width="@dimen/paint_scrollview_image_size"
                     android:layout_height="@dimen/paint_scrollview_image_size"
-                    android:src="@mipmap/baseline_crop_din_black_rectangle_48"
+                    android:src="@mipmap/baseline_crop_portrait_black_48"
                     android:layout_marginStart="@dimen/paint_scrollview_item_margin"
                     android:contentDescription="@string/rectangle"/>
 
