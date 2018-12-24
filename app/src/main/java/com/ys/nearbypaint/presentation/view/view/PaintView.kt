@@ -103,88 +103,10 @@ class PaintView : View {
                             pathPointList.add(PointF(currentPoint.x, currentPoint.y))
                         }
                     ElementMode.MODE_STAMP_SQUARE -> {
-                        val diffX = currentPoint.x - downPoint.x
-                        val diffY = currentPoint.y - downPoint.y
-                        val dx = Math.pow(diffX.toDouble(), 2.0)
-                        val dy = Math.pow(diffY.toDouble(), 2.0)
-                        val radius = Math.sqrt(dx + dy).toFloat()
-                        NearbyPaintLog.d(TAG, "radius : $radius")
-
-                        // for square rotate pattern
-                        pathPointList.clear()
-                        val leftTop = PointF(downPoint.x - radius, downPoint.y - radius)
-                        val leftBottom = PointF(downPoint.x - radius, downPoint.y + radius)
-                        val rightBottom = PointF(downPoint.x + radius, downPoint.y + radius)
-                        val rightTop = PointF(downPoint.x + radius, downPoint.y - radius)
-
-                        pathPointList.add(leftTop)
-                        pathPointList.add(leftBottom)
-                        pathPointList.add(rightBottom)
-                        pathPointList.add(rightTop)
-                        pathPointList.add(leftTop)
-
-                        val topPoint = PointF(downPoint.x, downPoint.y - radius)
-
-                        val currentToTopDiffX = currentPoint.x - topPoint.x
-                        val currentToTopDiffY = currentPoint.y - topPoint.y
-                        val currentToTopDx = Math.pow(currentToTopDiffX.toDouble(), 2.0)
-                        val currentToTopDy = Math.pow(currentToTopDiffY.toDouble(), 2.0)
-                        val currentToTopDistance = Math.sqrt(currentToTopDx + currentToTopDy).toFloat()
-
-                        val ratio = (radius * radius + radius * radius - currentToTopDistance * currentToTopDistance) /( 2 * radius * radius)
-                        var degree = Math.acos(ratio.toDouble()) * (180 / Math.PI)
-
-                        NearbyPaintLog.d(TAG, "degree : $degree")
-
-                        if (downPoint.x < currentPoint.x) {
-                            degree = -degree
-                        }
-
-                        val leftTopRadian = (degree + 315) * (Math.PI / 180)
-                        val newLeftTopX = downPoint.x + radius * Math.cos(leftTopRadian)
-                        val newLeftTopY = downPoint.y - radius * Math.sin(leftTopRadian)
-                        val newLeftTop = PointF(newLeftTopX.toFloat(), newLeftTopY.toFloat())
-
-                        val leftBottomRadian = (degree + 225) * (Math.PI / 180)
-                        val newLeftBottomX = downPoint.x + radius * Math.cos(leftBottomRadian)
-                        val newLeftBottomY = downPoint.y - radius * Math.sin(leftBottomRadian)
-                        val newLeftBottom = PointF(newLeftBottomX.toFloat(), newLeftBottomY.toFloat())
-
-                        val rightBottomRadian = (degree + 135) * (Math.PI / 180)
-                        val newRightBottomX = downPoint.x + radius * Math.cos(rightBottomRadian)
-                        val newRightBottomY = downPoint.y - radius * Math.sin(rightBottomRadian)
-                        val newRightBottom = PointF(newRightBottomX.toFloat(), newRightBottomY.toFloat())
-
-                        val rightTopRadian = (degree + 45) * (Math.PI / 180)
-                        val newRightTopX = downPoint.x + radius * Math.cos(rightTopRadian)
-                        val newRightTopY = downPoint.y - radius * Math.sin(rightTopRadian)
-                        val newRightTop = PointF(newRightTopX.toFloat(), newRightTopY.toFloat())
-
-                        drawElement?.path?.reset()
-                        drawElement?.path?.moveTo(newLeftTop.x, newLeftTop.y)
-                        drawElement?.path?.lineTo(newLeftBottom.x, newLeftBottom.y)
-                        drawElement?.path?.lineTo(newRightBottom.x, newRightBottom.y)
-                        drawElement?.path?.lineTo(newRightTop.x, newRightTop.y)
-                        drawElement?.path?.lineTo(newLeftTop.x, newLeftTop.y)
+                        makeSquareStamp(downPoint, currentPoint)
                     }
                     ElementMode.MODE_STAMP_RECTANGLE -> {
-                        val diffX = currentPoint.x - downPoint.x
-                        val diffY = currentPoint.y - downPoint.y
-
-                        // for rectangle
-                        pathPointList.clear()
-                        pathPointList.add(PointF(downPoint.x - diffX, downPoint.y - diffY))
-                        pathPointList.add(PointF(downPoint.x - diffX, downPoint.y + diffY))
-                        pathPointList.add(PointF(downPoint.x + diffX, downPoint.y + diffY))
-                        pathPointList.add(PointF(downPoint.x + diffX, downPoint.y - diffY))
-                        pathPointList.add(PointF(downPoint.x - diffX, downPoint.y - diffY))
-
-                        drawElement?.path?.reset()
-                        drawElement?.path?.moveTo(downPoint.x - diffX, downPoint.y - diffY)
-                        drawElement?.path?.lineTo(downPoint.x - diffX, downPoint.y + diffY)
-                        drawElement?.path?.lineTo(downPoint.x + diffX, downPoint.y + diffY)
-                        drawElement?.path?.lineTo(downPoint.x + diffX, downPoint.y - diffY)
-                        drawElement?.path?.lineTo(downPoint.x - diffX, downPoint.y - diffY)
+                        makeRectangleStamp(downPoint, currentPoint)
                     }
                     else -> {
                     }
@@ -278,6 +200,86 @@ class PaintView : View {
         canvasHeight = height
         val paintData = PaintData(canvasWidth, canvasHeight, pathPointList, thickness, brushColor)
         listener?.onDrawEnd(paintData)
+    }
+
+    private fun makeSquareStamp(downPoint: PointF, currentPoint: PointF) {
+        val diffX = currentPoint.x - downPoint.x
+        val diffY = currentPoint.y - downPoint.y
+        val dx = Math.pow(diffX.toDouble(), 2.0)
+        val dy = Math.pow(diffY.toDouble(), 2.0)
+        val radius = Math.sqrt(dx + dy).toFloat()
+        NearbyPaintLog.d(TAG, "radius : $radius")
+
+        val topPoint = PointF(downPoint.x, downPoint.y - radius)
+
+        val currentToTopDiffX = currentPoint.x - topPoint.x
+        val currentToTopDiffY = currentPoint.y - topPoint.y
+        val currentToTopDx = Math.pow(currentToTopDiffX.toDouble(), 2.0)
+        val currentToTopDy = Math.pow(currentToTopDiffY.toDouble(), 2.0)
+        val currentToTopDistance = Math.sqrt(currentToTopDx + currentToTopDy).toFloat()
+
+        val ratio = (radius * radius + radius * radius - currentToTopDistance * currentToTopDistance) /( 2 * radius * radius)
+        var degree = Math.acos(ratio.toDouble()) * (180 / Math.PI)
+
+        NearbyPaintLog.d(TAG, "degree : $degree")
+
+        if (downPoint.x < currentPoint.x) {
+            degree = -degree
+        }
+
+        val leftTopRadian = (degree + 315) * (Math.PI / 180)
+        val newLeftTopX = downPoint.x + radius * Math.cos(leftTopRadian)
+        val newLeftTopY = downPoint.y - radius * Math.sin(leftTopRadian)
+        val newLeftTop = PointF(newLeftTopX.toFloat(), newLeftTopY.toFloat())
+
+        val leftBottomRadian = (degree + 225) * (Math.PI / 180)
+        val newLeftBottomX = downPoint.x + radius * Math.cos(leftBottomRadian)
+        val newLeftBottomY = downPoint.y - radius * Math.sin(leftBottomRadian)
+        val newLeftBottom = PointF(newLeftBottomX.toFloat(), newLeftBottomY.toFloat())
+
+        val rightBottomRadian = (degree + 135) * (Math.PI / 180)
+        val newRightBottomX = downPoint.x + radius * Math.cos(rightBottomRadian)
+        val newRightBottomY = downPoint.y - radius * Math.sin(rightBottomRadian)
+        val newRightBottom = PointF(newRightBottomX.toFloat(), newRightBottomY.toFloat())
+
+        val rightTopRadian = (degree + 45) * (Math.PI / 180)
+        val newRightTopX = downPoint.x + radius * Math.cos(rightTopRadian)
+        val newRightTopY = downPoint.y - radius * Math.sin(rightTopRadian)
+        val newRightTop = PointF(newRightTopX.toFloat(), newRightTopY.toFloat())
+
+        pathPointList.clear()
+        pathPointList.add(newLeftTop)
+        pathPointList.add(newLeftBottom)
+        pathPointList.add(newRightBottom)
+        pathPointList.add(newRightTop)
+        pathPointList.add(newLeftTop)
+
+        drawElement?.path?.reset()
+        drawElement?.path?.moveTo(newLeftTop.x, newLeftTop.y)
+        drawElement?.path?.lineTo(newLeftBottom.x, newLeftBottom.y)
+        drawElement?.path?.lineTo(newRightBottom.x, newRightBottom.y)
+        drawElement?.path?.lineTo(newRightTop.x, newRightTop.y)
+        drawElement?.path?.lineTo(newLeftTop.x, newLeftTop.y)
+    }
+
+    private fun makeRectangleStamp(downPoint: PointF, currentPoint: PointF) {
+        val diffX = currentPoint.x - downPoint.x
+        val diffY = currentPoint.y - downPoint.y
+
+        // for rectangle
+        pathPointList.clear()
+        pathPointList.add(PointF(downPoint.x - diffX, downPoint.y - diffY))
+        pathPointList.add(PointF(downPoint.x - diffX, downPoint.y + diffY))
+        pathPointList.add(PointF(downPoint.x + diffX, downPoint.y + diffY))
+        pathPointList.add(PointF(downPoint.x + diffX, downPoint.y - diffY))
+        pathPointList.add(PointF(downPoint.x - diffX, downPoint.y - diffY))
+
+        drawElement?.path?.reset()
+        drawElement?.path?.moveTo(downPoint.x - diffX, downPoint.y - diffY)
+        drawElement?.path?.lineTo(downPoint.x - diffX, downPoint.y + diffY)
+        drawElement?.path?.lineTo(downPoint.x + diffX, downPoint.y + diffY)
+        drawElement?.path?.lineTo(downPoint.x + diffX, downPoint.y - diffY)
+        drawElement?.path?.lineTo(downPoint.x - diffX, downPoint.y - diffY)
     }
 
 }

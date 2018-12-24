@@ -3,7 +3,6 @@ package com.ys.nearbypaint.presentation.view.fragment
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Canvas
-import android.graphics.Color
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.view.LayoutInflater
@@ -66,23 +65,24 @@ class MainFragment : Fragment(), NearbyUseCase.NearbySubscribeListener, PaintVie
         val clearButton =  view.findViewById(R.id.clear_button) as ImageView
         clearButton.setOnClickListener { clear() }
 
-        reduceThicknessButton =  view.findViewById(R.id.reduce_thickness_button) as KeepPressingImageView
-        reduceThicknessButton.setOnClickListener { paintView.setElementMode(ElementMode.MODE_LINE) }
-        reduceThicknessButton.setKeepPressingListener(KeepPressingImageView.DEFAULT_PERIOD, object :
-            KeepPressingImageView.OnKeepPressingListener{
-            override fun onKeepPressing() {
-                increaseThickness(-1)
-            }
-            override fun onKeepPressingEnd() {
-                commitThickness()
-            }
-        })
         increaseThicknessButton =  view.findViewById(R.id.increase_thickness_button) as KeepPressingImageView
         increaseThicknessButton.setOnClickListener { paintView.setElementMode(ElementMode.MODE_LINE) }
         increaseThicknessButton.setKeepPressingListener(KeepPressingImageView.DEFAULT_PERIOD, object :
             KeepPressingImageView.OnKeepPressingListener{
             override fun onKeepPressing() {
                 increaseThickness(1)
+            }
+            override fun onKeepPressingEnd() {
+                commitThickness()
+            }
+        })
+
+        reduceThicknessButton =  view.findViewById(R.id.reduce_thickness_button) as KeepPressingImageView
+        reduceThicknessButton.setOnClickListener { paintView.setElementMode(ElementMode.MODE_LINE) }
+        reduceThicknessButton.setKeepPressingListener(KeepPressingImageView.DEFAULT_PERIOD, object :
+            KeepPressingImageView.OnKeepPressingListener{
+            override fun onKeepPressing() {
+                increaseThickness(-1)
             }
             override fun onKeepPressingEnd() {
                 commitThickness()
@@ -130,13 +130,16 @@ class MainFragment : Fragment(), NearbyUseCase.NearbySubscribeListener, PaintVie
      */
     override fun subscribe(message: Message) {
         activity?.runOnUiThread {
-            NearbyPaintLog.d(TAG, "message : $message")
+//            NearbyPaintLog.d(TAG, "message : $message")
             val paintData = GsonUtil.fromMessage(message)
             // eraser
             if (paintData.eraserFlg == 1) {
                 paintView.clearList()
             } else {
-                val drawElement = DrawElement(Color.BLACK, 2, true)
+                val color = paintData.color()
+                NearbyPaintLog.d(TAG, "subscribe color : $color")
+                val thickness = paintData.thickness
+                val drawElement = DrawElement(color, thickness, true)
                 val width = paintData.canvasWidth
                 val height = paintData.canvasHeight
                 var num = 0
@@ -159,6 +162,8 @@ class MainFragment : Fragment(), NearbyUseCase.NearbySubscribeListener, PaintVie
         NearbyPaintLog.d(TAG, "paintData.canvasWidth : " + paintData.canvasWidth)
         NearbyPaintLog.d(TAG, "paintData.canvasHeight : " + paintData.canvasHeight)
         NearbyPaintLog.d(TAG, "paintData.eraserFlg : " + paintData.eraserFlg)
+        NearbyPaintLog.d(TAG, "paintData.thickness : " + paintData.thickness)
+        NearbyPaintLog.d(TAG, "paintData.color() : " + paintData.color())
 
         nearbyUseCase.publish(GsonUtil.newMessage(paintData))
     }
