@@ -4,9 +4,9 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.PointF
-import android.graphics.Rect
 import android.os.Bundle
 import android.support.v4.app.Fragment
+import android.support.v4.content.res.ResourcesCompat
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -23,8 +23,7 @@ import com.ys.nearbypaint.utiles.NearbyPaintLog
 import com.ys.nearbypaint.utiles.SharedPreferencesManager
 
 
-class MainFragment : Fragment(), NearbyUseCase.NearbySubscribeListener, PaintView.OnDrawEnd,
-    MainActivity.OnActivityWindowFocusChangedListener {
+class MainFragment : Fragment(), NearbyUseCase.NearbySubscribeListener, PaintView.OnDrawEnd {
 
     private val TAG : String = if(javaClass.simpleName != null) javaClass.simpleName else "MainFragment"
     companion object {
@@ -45,8 +44,35 @@ class MainFragment : Fragment(), NearbyUseCase.NearbySubscribeListener, PaintVie
 
     private lateinit var thicknessNumberText: DisappearTextView
 
-    // status bar height
-    private var statusBarHeight = 0
+    private val buttons = mutableListOf<ImageView>()
+
+    private val clickListener = View.OnClickListener {
+        when(it.id) {
+            R.id.clear_button -> clear()
+            R.id.increase_thickness_button -> {
+                paintView.setElementMode(ElementMode.MODE_LINE)
+                increaseThickness(1)
+            }
+            R.id.reduce_thickness_button -> {
+                paintView.setElementMode(ElementMode.MODE_LINE)
+                increaseThickness(-1)
+            }
+            R.id.square_button -> paintView.setElementMode(ElementMode.MODE_STAMP_SQUARE)
+            R.id.rectangle_button -> paintView.setElementMode(ElementMode.MODE_STAMP_RECTANGLE)
+            R.id.eraser_button -> paintView.setElementMode(ElementMode.MODE_ERASER)
+            R.id.save_button -> save()
+        }
+        when(it.id) {
+            R.id.clear_button,
+            R.id.save_button -> {} //do nothing
+            else -> {
+                for (b in buttons) {
+                    b.background = ResourcesCompat.getDrawable(resources, android.R.color.transparent, null)
+                }
+                it.background = ResourcesCompat.getDrawable(resources, R.drawable.ic_back_round_shape, null)
+            }
+        }
+    }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         super.onCreateView(inflater, container, savedInstanceState)
@@ -59,19 +85,14 @@ class MainFragment : Fragment(), NearbyUseCase.NearbySubscribeListener, PaintVie
         paintView.setListener(this)
 
         val clearButton =  view.findViewById<ImageView>(R.id.clear_button)
-        clearButton.setOnClickListener { clear() }
+        setClickListener(clearButton)
 
         val increaseThicknessButton =  view.findViewById<ImageView>(R.id.increase_thickness_button)
-        increaseThicknessButton.setOnClickListener {
-            paintView.setElementMode(ElementMode.MODE_LINE)
-            increaseThickness(1)
-        }
+        setClickListener(increaseThicknessButton)
+        increaseThicknessButton.background = ResourcesCompat.getDrawable(resources, R.drawable.ic_back_round_shape, null)
 
         val reduceThicknessButton =  view.findViewById<ImageView>(R.id.reduce_thickness_button)
-        reduceThicknessButton.setOnClickListener {
-            paintView.setElementMode(ElementMode.MODE_LINE)
-            increaseThickness(-1)
-        }
+        setClickListener(reduceThicknessButton)
 
         val thickness = SharedPreferencesManager().readThickness(activity as Context)
         thicknessNumberText = view.findViewById(R.id.thickness_number_text)
@@ -79,16 +100,16 @@ class MainFragment : Fragment(), NearbyUseCase.NearbySubscribeListener, PaintVie
         thicknessNumberText.setDisappearText(thickness.toString())
 
         val squareButton = view.findViewById<ImageView>(R.id.square_button)
-        squareButton.setOnClickListener{ paintView.setElementMode(ElementMode.MODE_STAMP_SQUARE) }
+        setClickListener(squareButton)
 
         val rectangleButton = view.findViewById<ImageView>(R.id.rectangle_button)
-        rectangleButton.setOnClickListener{ paintView.setElementMode(ElementMode.MODE_STAMP_RECTANGLE) }
+        setClickListener(rectangleButton)
 
         val eraserButton = view.findViewById<ImageView>(R.id.eraser_button)
-        eraserButton.setOnClickListener{ paintView.setElementMode(ElementMode.MODE_ERASER) }
+        setClickListener(eraserButton)
 
         val saveButton =  view.findViewById(R.id.save_button) as ImageView
-        saveButton.setOnClickListener { save() }
+        setClickListener(saveButton)
 
         return view
     }
@@ -128,19 +149,7 @@ class MainFragment : Fragment(), NearbyUseCase.NearbySubscribeListener, PaintVie
         NearbyPaintLog.d(TAG, "paintData.thickness : " + paintData.thickness)
         NearbyPaintLog.d(TAG, "paintData.color() : " + paintData.color())
 
-        decreaseStatusBarHeight(paintData.points)
         nearbyUseCase.publish(GsonUtil.newMessage(paintData))
-    }
-
-    override fun onActivityWindowFocusChanged(hasFocus: Boolean) {
-        statusBarHeight = getStatusBarHeight()
-    }
-
-    private fun getStatusBarHeight(): Int {
-        val rect = Rect()
-        val window = activity?.window
-        window?.decorView?.getWindowVisibleDisplayFrame(rect)
-        return rect.top
     }
 
     private fun parseData(paintData: PaintData) {
@@ -162,7 +171,6 @@ class MainFragment : Fragment(), NearbyUseCase.NearbySubscribeListener, PaintVie
             for ((num, point) in paintData.points.withIndex()) {
                 point.x = point.x / width * canvasWidth
                 point.y = point.y / height * canvasHeight
-                increaseStatusBarHeight(point)
 
                 if (num == 0) {
                     drawElement.path.moveTo(point.x, point.y)
@@ -201,17 +209,6 @@ class MainFragment : Fragment(), NearbyUseCase.NearbySubscribeListener, PaintVie
         SharedPreferencesManager().putThickness(activity as Context, thickness)
     }
 
-    private fun increaseStatusBarHeight(point: PointF) {
-        // add status bar height
-        point.y = point.y + statusBarHeight
-    }
-
-    private fun decreaseStatusBarHeight(points: List<PointF>) {
-        for (point in points) {
-            point.y = point.y - statusBarHeight
-        }
-    }
-
     private fun save() {
         val bitmap = drawBitmap(paintView)
         val filePath = CaptureUseCase().captureCanvas(activity as Context, bitmap)
@@ -236,6 +233,11 @@ class MainFragment : Fragment(), NearbyUseCase.NearbySubscribeListener, PaintVie
         val canvas = Canvas(bitmap)
         paintView.captureCanvas(canvas)
         return bitmap
+    }
+
+    private fun setClickListener(button: ImageView) {
+        button.setOnClickListener(clickListener)
+        buttons.add(button)
     }
 
 }

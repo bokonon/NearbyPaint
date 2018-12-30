@@ -1,35 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.constraint.ConstraintLayout
+<RelativeLayout
         xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:app="http://schemas.android.com/apk/res-auto"
         xmlns:tools="http://schemas.android.com/tools"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-    <com.ys.nearbypaint.presentation.view.view.PaintView
-            android:id="@+id/paint_view"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            app:layout_constraintBottom_toTopOf="@id/paint_scrollview"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toTopOf="parent"/>
-
     <HorizontalScrollView
             android:id="@+id/paint_scrollview"
             android:layout_width="match_parent"
-            android:layout_height="@dimen/paint_scrollview_height"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/paint_view">
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true">
 
         <LinearLayout
                 android:layout_width="wrap_content"
-                android:layout_height="match_parent"
+                android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:layout_gravity="center_vertical"
-                android:padding="@dimen/paint_scrollview_padding">
+                android:paddingLeft="@dimen/paint_scrollview_horizontal_padding"
+                android:paddingRight="@dimen/paint_scrollview_horizontal_padding"
+                android:paddingTop="@dimen/paint_scrollview_vertical_padding"
+                android:paddingBottom="@dimen/paint_scrollview_vertical_padding">
 
             <!-- clear -->
             <ImageView
@@ -95,14 +85,17 @@
 
     </HorizontalScrollView>
 
+    <com.ys.nearbypaint.presentation.view.view.PaintView
+            android:id="@+id/paint_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_above="@+id/paint_scrollview"/>
+
     <com.ys.nearbypaint.presentation.view.view.DisappearTextView
             android:id="@+id/thickness_number_text"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            app:layout_constraintTop_toTopOf="@id/paint_view"
-            app:layout_constraintLeft_toLeftOf="@id/paint_view"
-            app:layout_constraintRight_toRightOf="@id/paint_view"
-            app:layout_constraintBottom_toBottomOf="@id/paint_view"
+            android:layout_centerInParent="true"
             android:padding="12dp"
             android:gravity="center"
             android:background="@drawable/round_shape"
@@ -111,4 +104,4 @@
             android:textColor="@android:color/white"
             android:textStyle="bold"/>
 
-</android.support.constraint.ConstraintLayout>
+</RelativeLayout>
