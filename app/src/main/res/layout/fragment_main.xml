@@ -15,7 +15,7 @@
             app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintTop_toTopOf="parent"/>
 
-    <com.ys.nearbypaint.presentation.view.view.ListenableHorizontalScrollView
+    <HorizontalScrollView
             android:id="@+id/paint_scrollview"
             android:layout_width="match_parent"
             android:layout_height="@dimen/paint_scrollview_height"
@@ -40,7 +40,7 @@
                     android:contentDescription="@string/clear_all"/>
 
             <!-- brash -->
-            <com.ys.nearbypaint.presentation.view.view.KeepPressingImageView
+            <ImageView
                     android:id="@+id/increase_thickness_button"
                     android:layout_width="@dimen/paint_scrollview_image_size"
                     android:layout_height="@dimen/paint_scrollview_image_size"
@@ -48,7 +48,7 @@
                     android:contentDescription="@string/increase_thickness"/>
 
             <!-- thick -->
-            <com.ys.nearbypaint.presentation.view.view.KeepPressingImageView
+            <ImageView
                     android:id="@+id/reduce_thickness_button"
                     android:layout_width="@dimen/paint_scrollview_image_size"
                     android:layout_height="@dimen/paint_scrollview_image_size"
@@ -93,7 +93,7 @@
 
         </LinearLayout>
 
-    </com.ys.nearbypaint.presentation.view.view.ListenableHorizontalScrollView>
+    </HorizontalScrollView>
 
     <com.ys.nearbypaint.presentation.view.view.DisappearTextView
             android:id="@+id/thickness_number_text"

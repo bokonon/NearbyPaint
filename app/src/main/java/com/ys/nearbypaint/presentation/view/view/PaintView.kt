@@ -22,8 +22,6 @@ class PaintView : View {
         fun onDrawEnd(paintData: PaintData) {}
     }
 
-    private var canvasWidth: Int = 0
-    private var canvasHeight: Int = 0
     private val currentPoint = PointF()
     private val prePoint = PointF()
     private val downPoint = PointF()
@@ -50,6 +48,8 @@ class PaintView : View {
     }
 
     override fun onDraw(canvas : Canvas) {
+        super.onDraw(canvas)
+
         canvas.drawColor(bgColor)
         for (element in drawElementList) {
             canvas.drawPath(element.path, element.paint)
@@ -196,9 +196,7 @@ class PaintView : View {
     }
 
     private fun onDrawEnd(pathPointList: List<PointF>) {
-        canvasWidth = width
-        canvasHeight = height
-        val paintData = PaintData(canvasWidth, canvasHeight, pathPointList, thickness, brushColor)
+        val paintData = PaintData(width, height, elementMode.rawValue, pathPointList, thickness, brushColor)
         listener?.onDrawEnd(paintData)
     }
 
@@ -252,7 +250,7 @@ class PaintView : View {
         pathPointList.add(newLeftBottom)
         pathPointList.add(newRightBottom)
         pathPointList.add(newRightTop)
-        pathPointList.add(newLeftTop)
+        pathPointList.add(PointF(newLeftTop.x, newLeftTop.y))
 
         drawElement?.path?.reset()
         drawElement?.path?.moveTo(newLeftTop.x, newLeftTop.y)

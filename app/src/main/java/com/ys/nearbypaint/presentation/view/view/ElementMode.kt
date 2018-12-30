@@ -7,5 +7,9 @@ enum class ElementMode(val rawValue :Int)  {
     MODE_STAMP_RECTANGLE(2),
     MODE_STAMP_TRIANGLE(3),
     MODE_STAMP_STAR(4),
-    UNKNOWN(99),
+    UNKNOWN(99);
+
+    companion object {
+        fun from(findValue: Int): ElementMode = ElementMode.values().first { it.rawValue == findValue }
+    }
 }

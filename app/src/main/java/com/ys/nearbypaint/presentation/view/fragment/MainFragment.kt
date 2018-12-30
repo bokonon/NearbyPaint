@@ -3,6 +3,8 @@ package com.ys.nearbypaint.presentation.view.fragment
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Canvas
+import android.graphics.PointF
+import android.graphics.Rect
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.view.LayoutInflater
@@ -20,13 +22,15 @@ import com.ys.nearbypaint.utiles.GsonUtil
 import com.ys.nearbypaint.utiles.NearbyPaintLog
 import com.ys.nearbypaint.utiles.SharedPreferencesManager
 
-class MainFragment : Fragment(), NearbyUseCase.NearbySubscribeListener, PaintView.OnDrawEnd {
+
+class MainFragment : Fragment(), NearbyUseCase.NearbySubscribeListener, PaintView.OnDrawEnd,
+    MainActivity.OnActivityWindowFocusChangedListener {
 
     private val TAG : String = if(javaClass.simpleName != null) javaClass.simpleName else "MainFragment"
     companion object {
-        fun newInstance(): MainFragment {
-            return MainFragment()
-        }
+//        fun newInstance(): MainFragment {
+//            return MainFragment()
+//        }
     }
 
     /**
@@ -41,8 +45,8 @@ class MainFragment : Fragment(), NearbyUseCase.NearbySubscribeListener, PaintVie
 
     private lateinit var thicknessNumberText: DisappearTextView
 
-    private lateinit var reduceThicknessButton: KeepPressingImageView
-    private lateinit var increaseThicknessButton: KeepPressingImageView
+    // status bar height
+    private var statusBarHeight = 0
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         super.onCreateView(inflater, container, savedInstanceState)
@@ -54,40 +58,20 @@ class MainFragment : Fragment(), NearbyUseCase.NearbySubscribeListener, PaintVie
         paintView = view.findViewById(R.id.paint_view) as PaintView
         paintView.setListener(this)
 
-        val scrollView = view.findViewById(R.id.paint_scrollview) as ListenableHorizontalScrollView
-        scrollView.setOnScrollChangeListener(object : ListenableHorizontalScrollView.OnScrollChangeListener{
-            override fun onScrollChange() {
-                NearbyPaintLog.d(TAG, "onScrollChange")
-                onScrollChanged()
-            }
-        })
-
-        val clearButton =  view.findViewById(R.id.clear_button) as ImageView
+        val clearButton =  view.findViewById<ImageView>(R.id.clear_button)
         clearButton.setOnClickListener { clear() }
 
-        increaseThicknessButton =  view.findViewById(R.id.increase_thickness_button) as KeepPressingImageView
-        increaseThicknessButton.setOnClickListener { paintView.setElementMode(ElementMode.MODE_LINE) }
-        increaseThicknessButton.setKeepPressingListener(KeepPressingImageView.DEFAULT_PERIOD, object :
-            KeepPressingImageView.OnKeepPressingListener{
-            override fun onKeepPressing() {
-                increaseThickness(1)
-            }
-            override fun onKeepPressingEnd() {
-                commitThickness()
-            }
-        })
+        val increaseThicknessButton =  view.findViewById<ImageView>(R.id.increase_thickness_button)
+        increaseThicknessButton.setOnClickListener {
+            paintView.setElementMode(ElementMode.MODE_LINE)
+            increaseThickness(1)
+        }
 
-        reduceThicknessButton =  view.findViewById(R.id.reduce_thickness_button) as KeepPressingImageView
-        reduceThicknessButton.setOnClickListener { paintView.setElementMode(ElementMode.MODE_LINE) }
-        reduceThicknessButton.setKeepPressingListener(KeepPressingImageView.DEFAULT_PERIOD, object :
-            KeepPressingImageView.OnKeepPressingListener{
-            override fun onKeepPressing() {
-                increaseThickness(-1)
-            }
-            override fun onKeepPressingEnd() {
-                commitThickness()
-            }
-        })
+        val reduceThicknessButton =  view.findViewById<ImageView>(R.id.reduce_thickness_button)
+        reduceThicknessButton.setOnClickListener {
+            paintView.setElementMode(ElementMode.MODE_LINE)
+            increaseThickness(-1)
+        }
 
         val thickness = SharedPreferencesManager().readThickness(activity as Context)
         thicknessNumberText = view.findViewById(R.id.thickness_number_text)
@@ -132,28 +116,7 @@ class MainFragment : Fragment(), NearbyUseCase.NearbySubscribeListener, PaintVie
         activity?.runOnUiThread {
 //            NearbyPaintLog.d(TAG, "message : $message")
             val paintData = GsonUtil.fromMessage(message)
-            // eraser
-            if (paintData.eraserFlg == 1) {
-                paintView.clearList()
-            } else {
-                val color = paintData.color()
-                NearbyPaintLog.d(TAG, "subscribe color : $color")
-                val thickness = paintData.thickness
-                val drawElement = DrawElement(color, thickness, true)
-                val width = paintData.canvasWidth
-                val height = paintData.canvasHeight
-                var num = 0
-                val canvasWidth = paintView.width
-                val canvasHeight = paintView.height
-                for (point in paintData.points) {
-                    if (num == 0) {
-                        drawElement.path.moveTo(point.x / width * canvasWidth, point.y / height * canvasHeight)
-                        num++
-                    }
-                    drawElement.path.lineTo(point.x / width * canvasWidth, point.y / height * canvasHeight)
-                }
-                paintView.addDrawElement(drawElement)
-            }
+            parseData(paintData)
         }
     }
 
@@ -161,17 +124,69 @@ class MainFragment : Fragment(), NearbyUseCase.NearbySubscribeListener, PaintVie
         NearbyPaintLog.d(TAG, object : Any() {}.javaClass.enclosingMethod.name)
         NearbyPaintLog.d(TAG, "paintData.canvasWidth : " + paintData.canvasWidth)
         NearbyPaintLog.d(TAG, "paintData.canvasHeight : " + paintData.canvasHeight)
-        NearbyPaintLog.d(TAG, "paintData.eraserFlg : " + paintData.eraserFlg)
+        NearbyPaintLog.d(TAG, "paintData.clearFlg : " + paintData.clearFlg)
         NearbyPaintLog.d(TAG, "paintData.thickness : " + paintData.thickness)
         NearbyPaintLog.d(TAG, "paintData.color() : " + paintData.color())
 
+        decreaseStatusBarHeight(paintData.points)
         nearbyUseCase.publish(GsonUtil.newMessage(paintData))
     }
 
-    private fun onScrollChanged() {
-//        NearbyPaintLog.d(TAG, "onScrollChanged")
-        reduceThicknessButton.forceStop()
-        increaseThicknessButton.forceStop()
+    override fun onActivityWindowFocusChanged(hasFocus: Boolean) {
+        statusBarHeight = getStatusBarHeight()
+    }
+
+    private fun getStatusBarHeight(): Int {
+        val rect = Rect()
+        val window = activity?.window
+        window?.decorView?.getWindowVisibleDisplayFrame(rect)
+        return rect.top
+    }
+
+    private fun parseData(paintData: PaintData) {
+        // clear
+        if (paintData.clearFlg == 1) {
+            paintView.clearList()
+        } else {
+            val elementMode = ElementMode.from(paintData.elementMode)
+            val color = paintData.color()
+            NearbyPaintLog.d(TAG, "subscribe color : $color")
+            val thickness = paintData.thickness
+            val drawElement = DrawElement(color, thickness, true)
+            val width = paintData.canvasWidth
+            val height = paintData.canvasHeight
+            val canvasWidth = paintView.width
+            val canvasHeight = paintView.height
+
+            var prePoint: PointF? = null
+            for ((num, point) in paintData.points.withIndex()) {
+                point.x = point.x / width * canvasWidth
+                point.y = point.y / height * canvasHeight
+                increaseStatusBarHeight(point)
+
+                if (num == 0) {
+                    drawElement.path.moveTo(point.x, point.y)
+                } else {
+                    when (elementMode) {
+                        ElementMode.MODE_ERASER,
+                        ElementMode.MODE_LINE -> {
+                            if (prePoint != null) {
+                                drawElement.path.quadTo(
+                                    prePoint.x,
+                                    prePoint.y,
+                                    (prePoint.x + point.x) / 2,
+                                    (prePoint.y + point.y) / 2)
+                            }
+                        }
+                        else -> {
+                            drawElement.path.lineTo(point.x, point.y)
+                        }
+                    }
+                }
+                prePoint = point
+            }
+            paintView.addDrawElement(drawElement)
+        }
     }
 
     private fun clear() {
@@ -183,11 +198,18 @@ class MainFragment : Fragment(), NearbyUseCase.NearbySubscribeListener, PaintVie
     private fun increaseThickness(value: Int) {
         val thickness = paintView.addThickness(value)
         thicknessNumberText.setDisappearText(thickness.toString())
+        SharedPreferencesManager().putThickness(activity as Context, thickness)
     }
 
-    private fun commitThickness() {
-        val thickness = Integer.parseInt(thicknessNumberText.text.toString())
-        SharedPreferencesManager().putThickness(activity as Context, thickness)
+    private fun increaseStatusBarHeight(point: PointF) {
+        // add status bar height
+        point.y = point.y + statusBarHeight
+    }
+
+    private fun decreaseStatusBarHeight(points: List<PointF>) {
+        for (point in points) {
+            point.y = point.y - statusBarHeight
+        }
     }
 
     private fun save() {

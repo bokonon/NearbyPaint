@@ -18,11 +18,14 @@ class PaintData : Parcelable {
     @SerializedName("canvasHeight")
     val canvasHeight: Int
 
+    @SerializedName("clearFlg")
+    val clearFlg: Int
+
+    @SerializedName("elementMode")
+    val elementMode: Int
+
     @SerializedName("points")
     var points: List<PointF> = ArrayList()
-
-    @SerializedName("eraserFlg")
-    val eraserFlg: Int
 
     @SerializedName("thickness")
     val thickness: Int
@@ -42,11 +45,12 @@ class PaintData : Parcelable {
     @SerializedName("alpha")
     val alpha: Int
 
-    constructor(width: Int, height: Int, points: List<PointF>, thickness: Int, color: Int) {
+    constructor(width: Int, height: Int, elementMode: Int, points: List<PointF>, thickness: Int, color: Int) {
         this.canvasWidth = width
         this.canvasHeight = height
+        this.clearFlg = 0
+        this.elementMode = elementMode
         this.points = points
-        this.eraserFlg = 0
         this.thickness = thickness
 
 //        this.color = color
@@ -56,25 +60,12 @@ class PaintData : Parcelable {
         this.alpha = Color.alpha(color)
     }
 
-//    constructor(width: Int, height: Int, points: List<PointF>, thickness: Int, red: Int, green: Int, blue: Int, alpha: Int) {
-//        this.canvasWidth = width
-//        this.canvasHeight = height
-//        this.points = points
-//        this.eraserFlg = 0
-//        this.thickness = thickness
-//
-//        this.red = red
-//        this.green = green
-//        this.blue = blue
-//        this.alpha = alpha
-////        this.color = Color.argb(alpha, red, green, blue)
-//    }
-
     constructor(eraser: Int) {
         this.canvasWidth = 0
         this.canvasHeight = 0
+        this.clearFlg = eraser
+        this.elementMode = 0
         this.points = ArrayList()
-        this.eraserFlg = eraser
         this.thickness = 0
 //        this.color = 0
         this.red = 0
@@ -90,11 +81,11 @@ class PaintData : Parcelable {
     private constructor(`in`: Parcel) {
         canvasWidth = `in`.readInt()
         canvasHeight = `in`.readInt()
+        clearFlg = `in`.readInt()
+        elementMode = `in`.readInt()
         arrayListOf<PointF>().apply {
             `in`.readList(this, PointF::class.java.classLoader)
         }
-
-        eraserFlg = `in`.readInt()
         thickness = `in`.readInt()
 //        color = `in`.readInt()
         red = `in`.readInt()
@@ -106,8 +97,9 @@ class PaintData : Parcelable {
     override fun writeToParcel(out: Parcel, flags: Int) {
         out.writeInt(canvasWidth)
         out.writeInt(canvasHeight)
+        out.writeInt(clearFlg)
+        out.writeInt(elementMode)
         out.writeList(points)
-        out.writeInt(eraserFlg)
         out.writeInt(thickness)
 //        out.writeInt(color)
         out.writeInt(red)
