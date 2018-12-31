@@ -15,28 +15,31 @@ import java.util.*
 
 class CaptureUseCase {
 
-    companion object {
-        private val TAG: String = if (javaClass.simpleName != null) javaClass.simpleName else "CaptureUseCase"
-    }
+    private val TAG: String = if (javaClass.simpleName != null) javaClass.simpleName else "CaptureUseCase"
 
     /**
      * Store Capture Data.
      * @return String fileName
      */
     fun captureCanvas(context: Context, bitmap: Bitmap) : String? {
-        var filePath: String? = null
         // decide capture directory
-        val dir: File
-        val path = Environment.getExternalStorageDirectory().toString() + "/ys.NearbyPaint/"
+        var dir: File
+        var path = Environment.getExternalStorageDirectory().toString() + "/ys.NearbyPaint/"
         if (Environment.getExternalStorageState() == Environment.MEDIA_MOUNTED) {
             dir = File(path)
-            dir.mkdirs()
+            val mkdirsResult = dir.mkdirs()
+            if (!mkdirsResult) {
+                path = context.filesDir.absolutePath + "/ys.NearbyPaint/"
+                dir = File(path)
+                dir.mkdirs()
+            }
         } else {
             dir = Environment.getDataDirectory()
         }
+        NearbyPaintLog.d(TAG, "dir.absolutePath : $dir.absolutePath")
         // make original file name
         val fileName = getFileName()
-        filePath = dir.absolutePath + "/" + fileName
+        val filePath = dir.absolutePath + "/" + fileName
 
         val file = File(path + fileName)
         var fos: FileOutputStream? = null
@@ -45,7 +48,7 @@ class CaptureUseCase {
             bitmap.compress(Bitmap.CompressFormat.PNG, 100, fos)
         } catch (e: FileNotFoundException) {
             NearbyPaintLog.e(TAG, e.message, e)
-            return filePath
+            return null
         } finally {
             bitmap.recycle()
             if (fos != null) {
@@ -57,15 +60,10 @@ class CaptureUseCase {
 
             }
         }
-        // update gallery
-        val values = ContentValues()
-        val contentResolver = context.contentResolver
-        values.put(MediaStore.Images.Media.MIME_TYPE, "image/png")
-        values.put(MediaStore.Images.Media.TITLE, fileName)
-        values.put("_data", filePath)
-        contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)
-        NearbyPaintLog.d(TAG, "FilePath : $filePath")
 
+        updateGallery(context, filePath, fileName)
+
+        NearbyPaintLog.d(TAG, "FilePath : $filePath")
         return filePath
     }
 
@@ -77,5 +75,20 @@ class CaptureUseCase {
         val formatter = SimpleDateFormat("yyyyMMddHHmmss", Locale.US)
         val date = Date()
         return "NearbyPaint_" + formatter.format(date) + ".png"
+    }
+
+    /**
+     * update gallery
+     * @param context
+     * @param filePath
+     * @param fileName
+     */
+    private fun updateGallery(context: Context, filePath: String, fileName: String) {
+        val values = ContentValues()
+        val contentResolver = context.contentResolver
+        values.put(MediaStore.Images.Media.MIME_TYPE, "image/png")
+        values.put(MediaStore.Images.Media.TITLE, fileName)
+        values.put("_data", filePath)
+        contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)
     }
 }

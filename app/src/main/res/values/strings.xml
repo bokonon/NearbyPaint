@@ -5,7 +5,13 @@
     <string name="message_capture_failed">failed to capture</string>
 
     <!-- content description -->
-    <string name="clear">clear</string>
+    <string name="clear_all">clear</string>
+    <string name="brash">brash</string>
+    <string name="increase_thickness">increase thickness</string>
+    <string name="reduce_thickness">reduce thickness</string>
+    <string name="square">square</string>
+    <string name="rectangle">rectangle</string>
+    <string name="eraser">eraser</string>
     <string name="save">save</string>
     <string name="change_color">change color</string>
 </resources>

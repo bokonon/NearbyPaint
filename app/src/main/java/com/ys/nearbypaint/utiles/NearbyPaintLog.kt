@@ -11,9 +11,13 @@ class NearbyPaintLog {
                 Log.d(PRE_FIX + tag, message)
             }
         }
-        fun e(tag: String, message: String?, throwable: Throwable) {
+        fun e(tag: String, message: String?, throwable: Throwable?) {
             if (BuildConfig.DEBUG) {
-                Log.e(PRE_FIX + tag, message, throwable)
+                if (throwable == null) {
+                    Log.e(PRE_FIX + tag, message)
+                } else {
+                    Log.e(PRE_FIX + tag, message, throwable)
+                }
             }
         }
     }
