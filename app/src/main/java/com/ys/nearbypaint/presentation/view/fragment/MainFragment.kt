@@ -1,11 +1,17 @@
 package com.ys.nearbypaint.presentation.view.fragment
 
+import android.Manifest
+import android.app.Activity
 import android.content.Context
+import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.PointF
+import android.os.Build
 import android.os.Bundle
+import android.support.v4.app.ActivityCompat
 import android.support.v4.app.Fragment
+import android.support.v4.content.ContextCompat
 import android.support.v4.content.res.ResourcesCompat
 import android.view.LayoutInflater
 import android.view.View
@@ -23,13 +29,14 @@ import com.ys.nearbypaint.utiles.NearbyPaintLog
 import com.ys.nearbypaint.utiles.SharedPreferencesManager
 
 
-class MainFragment : Fragment(), NearbyUseCase.NearbySubscribeListener, PaintView.OnDrawEnd {
+class MainFragment : Fragment(), NearbyUseCase.NearbySubscribeListener, PaintView.OnDrawEnd, MainActivity.OnRequestPermissionsResultListener {
 
     private val TAG : String = if(javaClass.simpleName != null) javaClass.simpleName else "MainFragment"
     companion object {
-//        fun newInstance(): MainFragment {
-//            return MainFragment()
-//        }
+        private const val PERMISSION_REQUEST_CODE = 1
+        fun newInstance(): MainFragment {
+            return MainFragment()
+        }
     }
 
     /**
@@ -60,7 +67,13 @@ class MainFragment : Fragment(), NearbyUseCase.NearbySubscribeListener, PaintVie
             R.id.square_button -> paintView.setElementMode(ElementMode.MODE_STAMP_SQUARE)
             R.id.rectangle_button -> paintView.setElementMode(ElementMode.MODE_STAMP_RECTANGLE)
             R.id.eraser_button -> paintView.setElementMode(ElementMode.MODE_ERASER)
-            R.id.save_button -> save()
+            R.id.save_button -> {
+                if (isWriteExternalStoragePermission()) {
+                    save()
+                } else {
+                    requestPermission()
+                }
+            }
         }
         when(it.id) {
             R.id.clear_button,
@@ -152,6 +165,22 @@ class MainFragment : Fragment(), NearbyUseCase.NearbySubscribeListener, PaintVie
         nearbyUseCase.publish(GsonUtil.newMessage(paintData))
     }
 
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
+        when (requestCode) {
+            PERMISSION_REQUEST_CODE -> {
+                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    save()
+                } else {
+                    Toast.makeText(
+                        activity?.applicationContext,
+                        getString(R.string.message_capture_failed),
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            }
+        }
+    }
+
     private fun parseData(paintData: PaintData) {
         // clear
         if (paintData.clearFlg == 1) {
@@ -238,6 +267,25 @@ class MainFragment : Fragment(), NearbyUseCase.NearbySubscribeListener, PaintVie
     private fun setClickListener(button: ImageView) {
         button.setOnClickListener(clickListener)
         buttons.add(button)
+    }
+
+    private fun isWriteExternalStoragePermission(): Boolean {
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (ContextCompat.checkSelfPermission(
+                    activity as Context,
+                    android.Manifest.permission.WRITE_EXTERNAL_STORAGE)== PackageManager.PERMISSION_GRANTED) {
+                return true
+            }
+            return false
+        }
+        return true
+    }
+
+    private fun requestPermission() {
+        ActivityCompat.requestPermissions(activity as Activity,
+            arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE),
+            PERMISSION_REQUEST_CODE
+        )
     }
 
 }

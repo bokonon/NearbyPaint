@@ -15,9 +15,7 @@ class NearbyUseCase(fragmentActivity: FragmentActivity, listener: NearbySubscrib
         fun subscribe(message: Message)
     }
 
-    companion object {
-        private val TAG: String = if (javaClass.simpleName != null) javaClass.simpleName else "NearbyUseCase"
-    }
+    private val TAG: String = if (javaClass.simpleName != null) javaClass.simpleName else "NearbyUseCase"
 
     /**
      * Nearby connection callback
@@ -131,6 +129,9 @@ class NearbyUseCase(fragmentActivity: FragmentActivity, listener: NearbySubscrib
      * Listener when Nearby Connection failed
      */
     private class NearbyConnectionFailedListener : GoogleApiClient.OnConnectionFailedListener {
+
+        private val TAG: String = if (javaClass.simpleName != null) javaClass.simpleName else "NearbyConnectionFailedListener"
+
         override fun onConnectionFailed(p0: ConnectionResult) {
             NearbyPaintLog.d(TAG, "onConnectionFailed")
             NearbyPaintLog.d(TAG, p0.toString())
