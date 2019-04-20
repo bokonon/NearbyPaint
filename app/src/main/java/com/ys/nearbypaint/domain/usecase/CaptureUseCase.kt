@@ -27,16 +27,11 @@ class CaptureUseCase {
         var path = Environment.getExternalStorageDirectory().toString() + "/ys.NearbyPaint/"
         if (Environment.getExternalStorageState() == Environment.MEDIA_MOUNTED) {
             dir = File(path)
-            val mkdirsResult = dir.mkdirs()
-            if (!mkdirsResult) {
-                path = context.filesDir.absolutePath + "/ys.NearbyPaint/"
-                dir = File(path)
-                dir.mkdirs()
-            }
+            dir.mkdirs()
         } else {
             dir = Environment.getDataDirectory()
         }
-        NearbyPaintLog.d(TAG, "dir.absolutePath : $dir.absolutePath")
+        NearbyPaintLog.d(TAG, "dir : $dir")
         // make original file name
         val fileName = getFileName()
         val filePath = dir.absolutePath + "/" + fileName
