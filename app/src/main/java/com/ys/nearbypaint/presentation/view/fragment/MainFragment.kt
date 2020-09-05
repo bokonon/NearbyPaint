@@ -9,10 +9,10 @@ import android.graphics.Canvas
 import android.graphics.PointF
 import android.os.Build
 import android.os.Bundle
-import android.support.v4.app.ActivityCompat
-import android.support.v4.app.Fragment
-import android.support.v4.content.ContextCompat
-import android.support.v4.content.res.ResourcesCompat
+import androidx.core.app.ActivityCompat
+import androidx.fragment.app.Fragment
+import androidx.core.content.ContextCompat
+import androidx.core.content.res.ResourcesCompat
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -31,7 +31,7 @@ import com.ys.nearbypaint.utiles.SharedPreferencesManager
 
 class MainFragment : Fragment(), NearbyUseCase.NearbySubscribeListener, PaintView.OnDrawEnd, MainActivity.OnRequestPermissionsResultListener {
 
-    private val TAG : String = if(javaClass.simpleName != null) javaClass.simpleName else "MainFragment"
+    private val TAG : String = javaClass.simpleName
     companion object {
         private const val PERMISSION_REQUEST_CODE = 1
         fun newInstance(): MainFragment {
@@ -130,15 +130,16 @@ class MainFragment : Fragment(), NearbyUseCase.NearbySubscribeListener, PaintVie
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
         NearbyPaintLog.d(TAG, object : Any() {}.javaClass.enclosingMethod.name)
-
     }
 
     override fun onStart() {
+//        NearbyPaintLog.d(TAG, object : Any() {}.javaClass.enclosingMethod.name)
         super.onStart()
         nearbyUseCase.connect()
     }
 
     override fun onStop() {
+//        NearbyPaintLog.d(TAG, object : Any() {}.javaClass.enclosingMethod.name)
         nearbyUseCase.disconnect()
         super.onStop()
     }
