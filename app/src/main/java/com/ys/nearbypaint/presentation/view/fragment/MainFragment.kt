@@ -135,12 +135,12 @@ class MainFragment : Fragment(), NearbyUseCase.NearbySubscribeListener, PaintVie
     override fun onStart() {
 //        NearbyPaintLog.d(TAG, object : Any() {}.javaClass.enclosingMethod.name)
         super.onStart()
-        nearbyUseCase.connect()
+        nearbyUseCase.subscribe()
     }
 
     override fun onStop() {
 //        NearbyPaintLog.d(TAG, object : Any() {}.javaClass.enclosingMethod.name)
-        nearbyUseCase.disconnect()
+        nearbyUseCase.unsubscribe()
         super.onStop()
     }
 
