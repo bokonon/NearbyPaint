@@ -56,7 +56,7 @@ class PaintView : View {
         }
 
         if (drawElement != null) {
-            canvas.drawPath(drawElement?.path, drawElement?.paint)
+            canvas.drawPath(drawElement!!.path, drawElement!!.paint)
         }
     }
 
@@ -191,7 +191,7 @@ class PaintView : View {
         }
 
         if (drawElement != null) {
-            canvas.drawPath(drawElement?.path, drawElement?.paint)
+            canvas.drawPath(drawElement!!.path, drawElement!!.paint)
         }
     }
 
